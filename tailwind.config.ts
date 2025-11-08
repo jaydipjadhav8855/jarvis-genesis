@@ -57,6 +57,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        jarvis: {
+          glow: "hsl(var(--jarvis-glow))",
+          "glow-strong": "hsl(var(--jarvis-glow-strong))",
+          "bg-dark": "hsl(var(--jarvis-bg-dark))",
+          "bg-darker": "hsl(var(--jarvis-bg-darker))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

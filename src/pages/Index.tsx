@@ -1,12 +1,95 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import Dashboard from "@/components/Dashboard";
+import ChatInterface from "@/components/ChatInterface";
+import VoiceControl from "@/components/VoiceControl";
+import { motion } from "framer-motion";
 
 const Index = () => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen p-8">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-7xl mx-auto"
+      >
+        {/* Header */}
+        <div className="text-center mb-12">
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-6xl font-bold mb-4 jarvis-text-glow"
+          >
+            J.A.R.V.I.S.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="text-xl text-muted-foreground mb-2"
+          >
+            Just A Rather Very Intelligent System
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="text-sm text-primary"
+          >
+            ⚡ Powered by Jayvik Labs – Human + AI Intelligence
+          </motion.p>
+        </div>
+
+        {/* Dashboard */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+        >
+          <Dashboard />
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+          {/* Voice Control */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 1 }}
+            className="flex items-center justify-center"
+          >
+            <VoiceControl
+              onTranscript={(text) => {
+                // Text will be sent through ChatInterface
+                const event = new CustomEvent("voiceTranscript", { detail: text });
+                window.dispatchEvent(event);
+              }}
+              isSpeaking={isSpeaking}
+            />
+          </motion.div>
+
+          {/* Chat Interface */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
+          >
+            <ChatInterface onSpeaking={setIsSpeaking} />
+          </motion.div>
+        </div>
+
+        {/* Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.4 }}
+          className="text-center mt-12 text-sm text-muted-foreground"
+        >
+          <p>System Status: Online | AI Model: Gemini 2.5 Flash | Version: 1.0.0</p>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
