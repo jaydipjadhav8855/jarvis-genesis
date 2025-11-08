@@ -105,12 +105,38 @@ const Index = () => {
           </motion.div>
         </div>
 
+        {/* About Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1.4 }}
+          className="mt-12"
+        >
+          <div className="jarvis-card p-8 text-center">
+            <h2 className="text-3xl font-bold jarvis-text-glow mb-4">About J.A.R.V.I.S.</h2>
+            <div className="space-y-4 text-muted-foreground">
+              <p className="text-lg">
+                Developed by <span className="text-primary font-semibold">Jayvik Labs</span>
+              </p>
+              <p className="text-base">
+                Founder & Creator: <span className="text-primary font-semibold">Jaydip Jadhav</span>
+              </p>
+              <div className="mt-6 pt-6 border-t border-border">
+                <p className="text-sm">
+                  Jayvik Labs combines cutting-edge AI technology with human intelligence to create 
+                  innovative solutions that empower users with advanced capabilities.
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Footer */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 1.4 }}
-          className="text-center mt-12 text-sm text-muted-foreground"
+          transition={{ duration: 0.5, delay: 1.6 }}
+          className="text-center mt-8 text-sm text-muted-foreground"
         >
           <p>System Status: Online | AI Model: Gemini 2.5 Flash | Version: 1.0.0</p>
         </motion.div>
