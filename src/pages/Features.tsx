@@ -6,6 +6,7 @@ import ImageGenerator from "@/components/ImageGenerator";
 import TaskManager from "@/components/TaskManager";
 import CodeAssistant from "@/components/CodeAssistant";
 import WebSearchPanel from "@/components/WebSearchPanel";
+import FileAnalyzer from "@/components/FileAnalyzer";
 import ParticleBackground from "@/components/ParticleBackground";
 
 const Features = () => {
@@ -46,7 +47,7 @@ const Features = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <ImageGenerator />
+            <FileAnalyzer />
           </motion.div>
 
           <motion.div
@@ -54,7 +55,7 @@ const Features = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <TaskManager />
+            <ImageGenerator />
           </motion.div>
 
           <motion.div
@@ -62,13 +63,22 @@ const Features = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <CodeAssistant />
+            <TaskManager />
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
+          >
+            <CodeAssistant />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+            className="lg:col-span-2"
           >
             <WebSearchPanel />
           </motion.div>
