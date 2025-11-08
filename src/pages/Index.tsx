@@ -1,13 +1,17 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Dashboard from "@/components/Dashboard";
 import ChatInterface from "@/components/ChatInterface";
 import VoiceControl from "@/components/VoiceControl";
 import CommandPalette from "@/components/CommandPalette";
 import ParticleBackground from "@/components/ParticleBackground";
+import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Index = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const navigate = useNavigate();
 
   const handleCommandResult = (result: string) => {
     const event = new CustomEvent("commandResult", { detail: result });
@@ -18,7 +22,14 @@ const Index = () => {
     <div className="min-h-screen p-8 relative">
       <ParticleBackground />
       
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-4 right-4 z-50 flex gap-2">
+        <Button
+          onClick={() => navigate('/features')}
+          className="jarvis-glow gap-2"
+        >
+          <Sparkles className="w-4 h-4" />
+          Advanced Features
+        </Button>
         <CommandPalette onCommandResult={handleCommandResult} />
       </div>
 
