@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Calendar, Clock, Cpu, Activity } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import WeatherWidget from "./WeatherWidget";
+import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const [time, setTime] = useState(new Date());
@@ -28,8 +30,13 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl hover:jarvis-glow transition-all duration-300">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+      >
+        <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl hover:jarvis-glow transition-all duration-300">
         <div className="flex items-center gap-3">
           <Clock className="w-8 h-8 text-primary" />
           <div>
@@ -38,8 +45,14 @@ const Dashboard = () => {
           </div>
         </div>
       </Card>
+      </motion.div>
 
-      <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl hover:jarvis-glow transition-all duration-300">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl hover:jarvis-glow transition-all duration-300">
         <div className="flex items-center gap-3">
           <Calendar className="w-8 h-8 text-secondary" />
           <div>
@@ -50,8 +63,14 @@ const Dashboard = () => {
           </div>
         </div>
       </Card>
+      </motion.div>
 
-      <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl hover:jarvis-glow transition-all duration-300">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl hover:jarvis-glow transition-all duration-300">
         <div className="flex items-center gap-3">
           <Activity className="w-8 h-8 text-primary" />
           <div>
@@ -60,8 +79,14 @@ const Dashboard = () => {
           </div>
         </div>
       </Card>
+      </motion.div>
 
-      <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl hover:jarvis-glow transition-all duration-300">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
+        <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl hover:jarvis-glow transition-all duration-300">
         <div className="flex items-center gap-3">
           <Cpu className="w-8 h-8 text-secondary" />
           <div>
@@ -70,6 +95,15 @@ const Dashboard = () => {
           </div>
         </div>
       </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <WeatherWidget />
+      </motion.div>
     </div>
   );
 };

@@ -91,6 +91,37 @@ All colors MUST be HSL.
   .jarvis-animate-pulse {
     animation: jarvis-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  .jarvis-scan-line {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .jarvis-scan-line::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: 0;
+    right: 0;
+    height: 200%;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      hsl(var(--jarvis-glow) / 0.1) 50%,
+      transparent 100%
+    );
+    animation: scan 3s linear infinite;
+  }
+
+  .jarvis-hologram {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--jarvis-glow) / 0.1) 0%,
+      transparent 50%,
+      hsl(var(--jarvis-glow) / 0.1) 100%
+    );
+    animation: hologram-shift 4s ease-in-out infinite;
+  }
 }
 
 @keyframes jarvis-pulse {
@@ -101,5 +132,23 @@ All colors MUST be HSL.
   50% {
     opacity: 0.7;
     box-shadow: 0 0 40px hsl(var(--jarvis-glow) / 0.5);
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes hologram-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }

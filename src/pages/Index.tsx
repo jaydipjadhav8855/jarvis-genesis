@@ -2,13 +2,26 @@ import { useState } from "react";
 import Dashboard from "@/components/Dashboard";
 import ChatInterface from "@/components/ChatInterface";
 import VoiceControl from "@/components/VoiceControl";
+import CommandPalette from "@/components/CommandPalette";
+import ParticleBackground from "@/components/ParticleBackground";
 import { motion } from "framer-motion";
 
 const Index = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
+  const handleCommandResult = (result: string) => {
+    const event = new CustomEvent("commandResult", { detail: result });
+    window.dispatchEvent(event);
+  };
+
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-8 relative">
+      <ParticleBackground />
+      
+      <div className="fixed top-4 right-4 z-50">
+        <CommandPalette onCommandResult={handleCommandResult} />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -16,7 +29,8 @@ const Index = () => {
         className="max-w-7xl mx-auto"
       >
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 relative">
+          <div className="absolute inset-0 jarvis-hologram opacity-30 blur-3xl" />
           <motion.h1
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

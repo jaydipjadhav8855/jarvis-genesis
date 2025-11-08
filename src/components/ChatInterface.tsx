@@ -34,8 +34,26 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
       }
     };
     
+    // Listen for command results
+    const handleCommandResult = (event: any) => {
+      if (event.detail) {
+        const commandMessage: Message = {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: event.detail,
+        };
+        setMessages((prev) => [...prev, commandMessage]);
+        saveMessage("assistant", event.detail);
+      }
+    };
+    
     window.addEventListener("voiceTranscript", handleVoiceTranscript);
-    return () => window.removeEventListener("voiceTranscript", handleVoiceTranscript);
+    window.addEventListener("commandResult", handleCommandResult);
+    
+    return () => {
+      window.removeEventListener("voiceTranscript", handleVoiceTranscript);
+      window.removeEventListener("commandResult", handleCommandResult);
+    };
   }, []);
 
   useEffect(() => {
@@ -236,7 +254,7 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
   };
 
   return (
-    <Card className="flex flex-col h-[600px] jarvis-border bg-card/50 backdrop-blur-xl">
+    <Card className="flex flex-col h-[600px] jarvis-border bg-card/50 backdrop-blur-xl jarvis-scan-line">
       <div className="flex items-center justify-between p-4 border-b jarvis-border">
         <h2 className="text-xl font-bold jarvis-text-glow">JARVIS Interface</h2>
         {messages.length > 0 && (
