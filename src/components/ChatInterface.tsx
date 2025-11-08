@@ -171,11 +171,27 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
       if (assistantMessage) {
         await saveMessage("assistant", assistantMessage);
         
-        // Text-to-speech
+        // Text-to-speech with language detection
         if ('speechSynthesis' in window) {
           const utterance = new SpeechSynthesisUtterance(assistantMessage);
           utterance.rate = 1.1;
           utterance.pitch = 1;
+          
+          // Auto-detect language and set appropriate voice
+          const voices = speechSynthesis.getVoices();
+          const hindiVoice = voices.find(v => v.lang.startsWith('hi'));
+          const marathiVoice = voices.find(v => v.lang.startsWith('mr'));
+          
+          // Try to detect language from content
+          if (/[\u0900-\u097F]/.test(assistantMessage)) {
+            // Contains Devanagari script (Hindi/Marathi)
+            utterance.lang = 'hi-IN';
+            if (hindiVoice) utterance.voice = hindiVoice;
+          } else if (marathiVoice && /[\u0900-\u097F]/.test(assistantMessage)) {
+            utterance.lang = 'mr-IN';
+            utterance.voice = marathiVoice;
+          }
+          
           utterance.onend = () => onSpeaking(false);
           speechSynthesis.speak(utterance);
         } else {

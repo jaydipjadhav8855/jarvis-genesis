@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import JarvisOrb from "./JarvisOrb";
+import LanguageSelector from "./LanguageSelector";
 import { useToast } from "@/components/ui/use-toast";
 
 interface VoiceControlProps {
@@ -9,6 +10,7 @@ interface VoiceControlProps {
 
 const VoiceControl = ({ onTranscript, isSpeaking }: VoiceControlProps) => {
   const [isListening, setIsListening] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState("hi-IN");
   const { toast } = useToast();
   const recognitionRef = useRef<any>(null);
 
@@ -19,7 +21,8 @@ const VoiceControl = ({ onTranscript, isSpeaking }: VoiceControlProps) => {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = "en-US";
+      recognitionRef.current.lang = selectedLanguage;
+      recognitionRef.current.maxAlternatives = 3;
 
       recognitionRef.current.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
@@ -57,7 +60,18 @@ const VoiceControl = ({ onTranscript, isSpeaking }: VoiceControlProps) => {
         recognitionRef.current.stop();
       }
     };
-  }, [onTranscript, toast]);
+  }, [onTranscript, toast, selectedLanguage]);
+
+  const handleLanguageChange = (lang: string) => {
+    setSelectedLanguage(lang);
+    if (recognitionRef.current) {
+      recognitionRef.current.lang = lang;
+    }
+    toast({
+      title: "Language Changed",
+      description: `Voice recognition set to ${lang.split("-")[0].toUpperCase()}`,
+    });
+  };
 
   const toggleListening = () => {
     if (!recognitionRef.current) return;
@@ -80,18 +94,28 @@ const VoiceControl = ({ onTranscript, isSpeaking }: VoiceControlProps) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-8">
+    <div className="flex flex-col items-center justify-center py-8 gap-6">
+      <LanguageSelector
+        selectedLanguage={selectedLanguage}
+        onLanguageChange={handleLanguageChange}
+      />
+      
       <JarvisOrb
         isListening={isListening}
         isSpeaking={isSpeaking}
         onClick={toggleListening}
       />
-      <p className="mt-6 text-sm text-muted-foreground">
+      
+      <p className="mt-2 text-sm text-muted-foreground text-center">
         {isListening
           ? "Listening..."
           : isSpeaking
           ? "JARVIS is speaking..."
           : "Click to activate voice input"}
+      </p>
+      
+      <p className="text-xs text-muted-foreground/60 text-center max-w-xs">
+        Supports: English, Hindi, Marathi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Punjabi
       </p>
     </div>
   );
