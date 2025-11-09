@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Send, Trash2, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import type { User } from "@supabase/supabase-js";
 
 interface Message {
   id: string;
@@ -21,11 +23,38 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Check authentication
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setUser(session.user);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate("/auth");
+      } else {
+        setUser(session.user);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   useEffect(() => {
-    loadConversations();
+    if (user) {
+      loadConversations();
+    }
     
     // Listen for voice transcripts
     const handleVoiceTranscript = (event: any) => {
@@ -54,16 +83,19 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
       window.removeEventListener("voiceTranscript", handleVoiceTranscript);
       window.removeEventListener("commandResult", handleCommandResult);
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const loadConversations = async () => {
+    if (!user) return;
+
     const { data, error } = await supabase
       .from("conversations")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: true })
       .limit(50);
 
@@ -84,16 +116,71 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
   };
 
   const saveMessage = async (role: "user" | "assistant", content: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
     
     const { error } = await supabase.from("conversations").insert({
-      user_id: user?.id || null,
+      user_id: user.id,
       role,
       message: content,
     });
 
     if (error) {
       console.error("Error saving message:", error);
+    }
+  };
+
+  const playTextToSpeech = async (text: string) => {
+    if (!ttsEnabled) {
+      onSpeaking(false);
+      return;
+    }
+
+    try {
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/text-to-speech`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ text }),
+        }
+      );
+
+      if (!response.ok) {
+        console.error("TTS error:", await response.text());
+        onSpeaking(false);
+        return;
+      }
+
+      const { audioContent } = await response.json();
+      
+      // Create and play audio
+      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
+      audioRef.current = audio;
+      
+      audio.onended = () => {
+        onSpeaking(false);
+        audioRef.current = null;
+      };
+      
+      audio.onerror = () => {
+        console.error("Audio playback error");
+        onSpeaking(false);
+        audioRef.current = null;
+      };
+
+      await audio.play();
+    } catch (error) {
+      console.error("TTS error:", error);
+      onSpeaking(false);
     }
   };
 
@@ -188,33 +275,7 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
 
       if (assistantMessage) {
         await saveMessage("assistant", assistantMessage);
-        
-        // Text-to-speech with language detection
-        if ('speechSynthesis' in window) {
-          const utterance = new SpeechSynthesisUtterance(assistantMessage);
-          utterance.rate = 1.1;
-          utterance.pitch = 1;
-          
-          // Auto-detect language and set appropriate voice
-          const voices = speechSynthesis.getVoices();
-          const hindiVoice = voices.find(v => v.lang.startsWith('hi'));
-          const marathiVoice = voices.find(v => v.lang.startsWith('mr'));
-          
-          // Try to detect language from content
-          if (/[\u0900-\u097F]/.test(assistantMessage)) {
-            // Contains Devanagari script (Hindi/Marathi)
-            utterance.lang = 'hi-IN';
-            if (hindiVoice) utterance.voice = hindiVoice;
-          } else if (marathiVoice && /[\u0900-\u097F]/.test(assistantMessage)) {
-            utterance.lang = 'mr-IN';
-            utterance.voice = marathiVoice;
-          }
-          
-          utterance.onend = () => onSpeaking(false);
-          speechSynthesis.speak(utterance);
-        } else {
-          onSpeaking(false);
-        }
+        await playTextToSpeech(assistantMessage);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -230,12 +291,12 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
   };
 
   const clearConversations = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
     
     const { error } = await supabase
       .from("conversations")
       .delete()
-      .eq("user_id", user?.id || null);
+      .eq("user_id", user.id);
 
     if (error) {
       toast({
@@ -253,21 +314,49 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
     });
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
   return (
     <Card className="flex flex-col h-[600px] jarvis-border bg-card/50 backdrop-blur-xl jarvis-scan-line">
       <div className="flex items-center justify-between p-4 border-b jarvis-border">
         <h2 className="text-xl font-bold jarvis-text-glow">JARVIS Interface</h2>
-        {messages.length > 0 && (
+        <div className="flex gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={clearConversations}
+            onClick={() => setTtsEnabled(!ttsEnabled)}
+            className="text-muted-foreground"
+          >
+            {ttsEnabled ? (
+              <Volume2 className="w-4 h-4 mr-2" />
+            ) : (
+              <VolumeX className="w-4 h-4 mr-2" />
+            )}
+            {ttsEnabled ? "Voice On" : "Voice Off"}
+          </Button>
+          {messages.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearConversations}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear History
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
             className="text-muted-foreground hover:text-destructive"
           >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Clear History
+            Logout
           </Button>
-        )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
