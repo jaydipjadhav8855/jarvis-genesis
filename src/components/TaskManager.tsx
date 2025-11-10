@@ -1,15 +1,17 @@
-import { useState, useEffect } from "react";
-import { Plus, Trash2, CheckCircle, Circle } from "lucide-react";
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
+import { CheckSquare, Plus, Trash2, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Task {
   id: string;
-  text: string;
+  title: string;
   completed: boolean;
+  createdAt: Date;
 }
 
 const TaskManager = () => {
@@ -17,115 +19,124 @@ const TaskManager = () => {
   const [newTask, setNewTask] = useState("");
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Load tasks from localStorage
-    const saved = localStorage.getItem("jarvis-tasks");
-    if (saved) {
-      setTasks(JSON.parse(saved));
-    }
-  }, []);
-
-  useEffect(() => {
-    // Save tasks to localStorage
-    localStorage.setItem("jarvis-tasks", JSON.stringify(tasks));
-  }, [tasks]);
-
   const addTask = () => {
-    if (!newTask.trim()) return;
+    if (!newTask.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a task",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const task: Task = {
       id: Date.now().toString(),
-      text: newTask,
+      title: newTask,
       completed: false,
+      createdAt: new Date(),
     };
 
     setTasks([...tasks, task]);
     setNewTask("");
+    
     toast({
       title: "Task Added",
-      description: "कार्य जोडले गेले आहे",
+      description: "Your task has been added successfully",
     });
   };
 
   const toggleTask = (id: string) => {
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
   };
 
   const deleteTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
+    setTasks(tasks.filter((task) => task.id !== id));
     toast({
       title: "Task Deleted",
-      description: "कार्य हटवले गेले आहे",
+      description: "Task removed successfully",
     });
   };
 
   return (
-    <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl space-y-4">
-      <h3 className="text-lg font-semibold jarvis-text-glow">Task Manager</h3>
+    <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl">
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <CheckSquare className="w-6 h-6 text-primary" />
+          <h2 className="text-2xl font-bold jarvis-text-glow">Task Automation</h2>
+        </div>
 
-      <div className="flex gap-2">
-        <Input
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-          placeholder="नवीन कार्य... (New task...)"
-          className="jarvis-border bg-background/50"
-          onKeyPress={(e) => e.key === 'Enter' && addTask()}
-        />
-        <Button onClick={addTask} className="jarvis-glow">
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
+        <div className="flex gap-2">
+          <Input
+            value={newTask}
+            onChange={(e) => setNewTask(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && addTask()}
+            placeholder="Enter a new task..."
+            className="jarvis-border bg-background/50"
+          />
+          <Button onClick={addTask} className="jarvis-glow">
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
 
-      <div className="space-y-2 max-h-[400px] overflow-y-auto">
-        <AnimatePresence>
-          {tasks.map((task) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className={`flex items-center gap-2 p-3 rounded-lg jarvis-border bg-background/30 hover:bg-background/50 transition-all ${
-                task.completed ? 'opacity-60' : ''
-              }`}
-            >
-              <button
-                onClick={() => toggleTask(task.id)}
-                className="flex-shrink-0"
+        <div className="space-y-2">
+          <AnimatePresence>
+            {tasks.map((task) => (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="flex items-center gap-3 p-3 rounded-lg jarvis-border bg-secondary/20"
               >
-                {task.completed ? (
-                  <CheckCircle className="w-5 h-5 text-primary" />
-                ) : (
-                  <Circle className="w-5 h-5 text-muted-foreground" />
-                )}
-              </button>
-              
-              <span className={`flex-1 text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                {task.text}
-              </span>
-              
-              <Button
-                onClick={() => deleteTask(task.id)}
-                variant="ghost"
-                size="sm"
-                className="flex-shrink-0"
-              >
-                <Trash2 className="w-4 h-4 text-destructive" />
-              </Button>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-        
+                <Checkbox
+                  checked={task.completed}
+                  onCheckedChange={() => toggleTask(task.id)}
+                />
+                <div className="flex-1">
+                  <p
+                    className={`${
+                      task.completed
+                        ? "line-through text-muted-foreground"
+                        : "text-foreground"
+                    }`}
+                  >
+                    {task.title}
+                  </p>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                    <Calendar className="w-3 h-3" />
+                    {task.createdAt.toLocaleDateString()}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => deleteTask(task.id)}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
         {tasks.length === 0 && (
-          <p className="text-center text-muted-foreground text-sm py-8">
-            No tasks yet. Add one above!
-          </p>
+          <div className="text-center text-muted-foreground py-8">
+            <CheckSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <p>No tasks yet. Add one to get started!</p>
+          </div>
         )}
-      </div>
 
-      <div className="text-xs text-muted-foreground pt-2 border-t jarvis-border/50">
-        Total: {tasks.length} | Completed: {tasks.filter(t => t.completed).length}
+        {tasks.length > 0 && (
+          <div className="flex justify-between text-sm text-muted-foreground pt-4 border-t jarvis-border">
+            <span>Total: {tasks.length}</span>
+            <span>Completed: {tasks.filter((t) => t.completed).length}</span>
+          </div>
+        )}
       </div>
     </Card>
   );

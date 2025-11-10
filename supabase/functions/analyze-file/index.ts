@@ -11,122 +11,87 @@ serve(async (req) => {
   }
 
   try {
-    const contentType = req.headers.get('content-type');
+    const { content, fileName, fileType, task } = await req.json();
+    console.log('File analysis request:', { fileName, fileType, task });
     
-    let fileData: string;
-    let mimeType: string;
-    let analysisType: string;
-
-    if (contentType?.includes('multipart/form-data')) {
-      const formData = await req.formData();
-      const file = formData.get('file') as File;
-      const type = formData.get('type') as string;
-      
-      if (!file) {
-        throw new Error('No file provided');
-      }
-
-      analysisType = type || 'general';
-      mimeType = file.type;
-      
-      // Convert file to base64
-      const buffer = await file.arrayBuffer();
-      const bytes = new Uint8Array(buffer);
-      const base64 = btoa(String.fromCharCode(...bytes));
-      fileData = base64;
-      
-      console.log(`Processing ${file.name} (${file.type}, ${file.size} bytes)`);
-    } else {
-      const json = await req.json();
-      fileData = json.fileData;
-      mimeType = json.mimeType;
-      analysisType = json.analysisType || 'general';
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+    let prompt = "";
+    switch (task) {
+      case "summarize":
+        prompt = `Summarize the following document (${fileName}):\n\n${content}`;
+        break;
+      case "extract":
+        prompt = `Extract key information from this document (${fileName}):\n\n${content}`;
+        break;
+      case "analyze":
+        prompt = `Analyze this document (${fileName}) and provide insights:\n\n${content}`;
+        break;
+      case "translate":
+        prompt = `Translate this document (${fileName}) to English:\n\n${content}`;
+        break;
+      default:
+        prompt = `Analyze this document (${fileName}):\n\n${content}`;
     }
 
-    // Prepare prompt based on analysis type
-    let prompt = '';
-    if (analysisType === 'document') {
-      prompt = 'Analyze this document. Extract key information, summarize the content, identify main topics, and provide insights. Be thorough and detailed.';
-    } else if (analysisType === 'image') {
-      prompt = 'Analyze this image in detail. Describe what you see, identify objects, text, people, colors, and any notable features. Provide a comprehensive analysis.';
-    } else if (analysisType === 'code') {
-      prompt = 'Analyze this code file. Explain what it does, identify the programming language, review code quality, suggest improvements, and point out any potential issues.';
-    } else {
-      prompt = 'Analyze this file comprehensively. Extract all relevant information, summarize content, and provide detailed insights about what this file contains.';
-    }
-
-    // Determine if file is image
-    const isImage = mimeType.startsWith('image/');
-    
-    // Prepare request body for Gemini API
-    const requestBody: any = {
-      contents: [
-        {
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ]
-    };
-
-    // Add inline data for images and documents
-    if (isImage || mimeType.includes('pdf') || mimeType.includes('document')) {
-      requestBody.contents[0].parts.push({
-        inline_data: {
-          mime_type: mimeType,
-          data: fileData
-        }
-      });
-    } else {
-      // For text files, decode and add as text
-      try {
-        const decoded = atob(fileData);
-        requestBody.contents[0].parts.push({ text: `File content:\n\n${decoded}` });
-      } catch {
-        requestBody.contents[0].parts.push({
-          inline_data: {
-            mime_type: mimeType,
-            data: fileData
-          }
-        });
-      }
-    }
-
-    // Call Gemini API
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`;
-    
-    console.log('Calling Gemini API...');
-    const response = await fetch(geminiUrl, {
-      method: 'POST',
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { 
+            role: "system", 
+            content: "You are an expert document analyst. Provide clear, detailed analysis of documents." 
+          },
+          { role: "user", content: prompt }
+        ],
+      }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error("AI gateway error:", response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), 
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: "AI usage quota exceeded. Please add credits." }), 
+          {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+      
+      throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    const analysis = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No analysis generated';
+    const analysis = data.choices[0].message.content;
 
-    console.log('Analysis completed successfully');
+    console.log('File analysis completed');
 
     return new Response(
-      JSON.stringify({ 
-        analysis,
-        mimeType,
-        analysisType
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ analysis }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
     );
   } catch (error) {
     console.error("File analysis error:", error);

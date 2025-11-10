@@ -1,130 +1,158 @@
 import { useState } from "react";
-import { Code, Loader2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Code2, Sparkles, Bug, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 
 const CodeAssistant = () => {
   const [code, setCode] = useState("");
-  const [task, setTask] = useState<string>("generate");
-  const [language, setLanguage] = useState<string>("javascript");
+  const [language, setLanguage] = useState("javascript");
+  const [task, setTask] = useState<"generate" | "explain" | "debug" | "optimize">("generate");
   const [result, setResult] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const processCode = async () => {
+  const handleSubmit = async () => {
     if (!code.trim()) {
       toast({
-        title: "कृपया code किंवा prompt द्या",
+        title: "Error",
+        description: "Please enter some code or description",
         variant: "destructive",
       });
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('code-assistant', {
-        body: { task, code, language }
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/code-assistant`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ task, code, language }),
+        }
+      );
 
-      if (error) throw error;
-      
+      if (!response.ok) {
+        throw new Error("Failed to process code");
+      }
+
+      const data = await response.json();
       setResult(data.result);
+      
       toast({
-        title: "Complete!",
-        description: "कोड तयार झाला आहे",
+        title: "Success",
+        description: "Code processed successfully",
       });
     } catch (error) {
-      console.error('Code assistant error:', error);
+      console.error("Error:", error);
       toast({
         title: "Error",
         description: "Failed to process code",
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Code className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-semibold jarvis-text-glow">Code Assistant</h3>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2">
-        <Select value={task} onValueChange={setTask}>
-          <SelectTrigger className="jarvis-border bg-background/50">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="jarvis-border bg-card/95 backdrop-blur-xl">
-            <SelectItem value="generate">Generate Code</SelectItem>
-            <SelectItem value="explain">Explain Code</SelectItem>
-            <SelectItem value="debug">Debug Code</SelectItem>
-            <SelectItem value="optimize">Optimize Code</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={language} onValueChange={setLanguage}>
-          <SelectTrigger className="jarvis-border bg-background/50">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="jarvis-border bg-card/95 backdrop-blur-xl">
-            <SelectItem value="javascript">JavaScript</SelectItem>
-            <SelectItem value="python">Python</SelectItem>
-            <SelectItem value="typescript">TypeScript</SelectItem>
-            <SelectItem value="java">Java</SelectItem>
-            <SelectItem value="cpp">C++</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Textarea
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        placeholder={task === 'generate' ? "वर्णन द्या... (Describe what you want...)" : "कोड पेस्ट करा... (Paste code...)"}
-        className="jarvis-border bg-background/50 min-h-[120px] font-mono text-sm"
-        disabled={loading}
-      />
-
-      <Button
-        onClick={processCode}
-        disabled={loading || !code.trim()}
-        className="w-full jarvis-glow"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Processing...
-          </>
-        ) : (
-          <>
-            <Code className="w-4 h-4 mr-2" />
-            {task === 'generate' ? 'Generate' : task === 'explain' ? 'Explain' : task === 'debug' ? 'Debug' : 'Optimize'}
-          </>
-        )}
-      </Button>
-
-      {result && (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-foreground">Result:</p>
-          <Textarea
-            value={result}
-            readOnly
-            className="jarvis-border bg-background/30 min-h-[200px] font-mono text-sm"
-          />
+    <Card className="p-6 jarvis-border bg-card/50 backdrop-blur-xl">
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Code2 className="w-6 h-6 text-primary" />
+          <h2 className="text-2xl font-bold jarvis-text-glow">Code Assistant</h2>
         </div>
-      )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Select value={task} onValueChange={(value: any) => setTask(value)}>
+            <SelectTrigger className="jarvis-border">
+              <SelectValue placeholder="Select task" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="generate">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Generate Code
+                </div>
+              </SelectItem>
+              <SelectItem value="explain">
+                <div className="flex items-center gap-2">
+                  <Code2 className="w-4 h-4" />
+                  Explain Code
+                </div>
+              </SelectItem>
+              <SelectItem value="debug">
+                <div className="flex items-center gap-2">
+                  <Bug className="w-4 h-4" />
+                  Debug Code
+                </div>
+              </SelectItem>
+              <SelectItem value="optimize">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4" />
+                  Optimize Code
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="jarvis-border">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="javascript">JavaScript</SelectItem>
+              <SelectItem value="typescript">TypeScript</SelectItem>
+              <SelectItem value="python">Python</SelectItem>
+              <SelectItem value="java">Java</SelectItem>
+              <SelectItem value="cpp">C++</SelectItem>
+              <SelectItem value="go">Go</SelectItem>
+              <SelectItem value="rust">Rust</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Textarea
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder={
+            task === "generate"
+              ? "Describe what you want to build..."
+              : "Paste your code here..."
+          }
+          className="min-h-[200px] font-mono jarvis-border bg-background/50"
+        />
+
+        <Button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="w-full jarvis-glow"
+        >
+          {isLoading ? "Processing..." : "Process Code"}
+        </Button>
+
+        {result && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4"
+          >
+            <h3 className="text-lg font-semibold mb-2">Result:</h3>
+            <Card className="p-4 jarvis-border bg-secondary/20 max-h-[400px] overflow-y-auto">
+              <pre className="whitespace-pre-wrap font-mono text-sm">
+                {result}
+              </pre>
+            </Card>
+          </motion.div>
+        )}
+      </div>
     </Card>
   );
 };

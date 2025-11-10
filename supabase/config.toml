@@ -3,6 +3,9 @@ project_id = "ccsweamqyoalxkyuqkfm"
 [functions.chat]
 verify_jwt = false
 
+[functions.code-assistant]
+verify_jwt = false
+
 [functions.analyze-file]
 verify_jwt = false
 

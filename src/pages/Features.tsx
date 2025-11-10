@@ -1,13 +1,13 @@
-import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import ImageGenerator from "@/components/ImageGenerator";
-import TaskManager from "@/components/TaskManager";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft } from "lucide-react";
 import CodeAssistant from "@/components/CodeAssistant";
-import WebSearchPanel from "@/components/WebSearchPanel";
 import FileAnalyzer from "@/components/FileAnalyzer";
+import TaskManager from "@/components/TaskManager";
+import JarvisOrb from "@/components/JarvisOrb";
 import ParticleBackground from "@/components/ParticleBackground";
+import { motion } from "framer-motion";
 
 const Features = () => {
   const navigate = useNavigate();
@@ -17,72 +17,70 @@ const Features = () => {
       <ParticleBackground />
 
       <div className="max-w-7xl mx-auto relative z-10">
+        <div className="mb-8 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
+            className="jarvis-glow"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Button>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="text-center mb-8"
         >
-          <Button
-            onClick={() => navigate('/')}
-            variant="outline"
-            className="jarvis-border gap-2 mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Main
-          </Button>
-
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-bold jarvis-text-glow mb-4">
-              Advanced Features
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              सगळे Nova AI सारखे फीचर्स (All Nova AI-like features)
-            </p>
-          </div>
+          <h1 className="text-4xl font-bold jarvis-text-glow mb-2">
+            Advanced AI Tools
+          </h1>
+          <p className="text-muted-foreground">
+            Powered by Lovable AI & Jayvik Labs
+          </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <FileAnalyzer />
-          </motion.div>
+        <Tabs defaultValue="code" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="code">Code Assistant</TabsTrigger>
+            <TabsTrigger value="files">File Analyzer</TabsTrigger>
+            <TabsTrigger value="tasks">Task Manager</TabsTrigger>
+          </TabsList>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <ImageGenerator />
-          </motion.div>
+          <TabsContent value="code">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <CodeAssistant />
+              </div>
+              <div>
+                <JarvisOrb isSpeaking={false} isListening={false} onClick={() => {}} />
+              </div>
+            </div>
+          </TabsContent>
 
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <TaskManager />
-          </motion.div>
+          <TabsContent value="files">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <FileAnalyzer />
+              </div>
+              <div>
+                <JarvisOrb isSpeaking={false} isListening={false} onClick={() => {}} />
+              </div>
+            </div>
+          </TabsContent>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <CodeAssistant />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="lg:col-span-2"
-          >
-            <WebSearchPanel />
-          </motion.div>
-        </div>
+          <TabsContent value="tasks">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <TaskManager />
+              </div>
+              <div>
+                <JarvisOrb isSpeaking={false} isListening={false} onClick={() => {}} />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
