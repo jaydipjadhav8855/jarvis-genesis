@@ -28,7 +28,6 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Check authentication
   useEffect(() => {
@@ -136,48 +135,35 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
     }
 
     try {
-      // Stop any currently playing audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      // Use browser's built-in speech synthesis
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Configure voice settings for a deeper, more authoritative voice
+      utterance.rate = 0.9; // Slightly slower for clarity
+      utterance.pitch = 0.8; // Lower pitch for deeper voice
+      utterance.volume = 1.0;
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/text-to-speech`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ text }),
-        }
+      // Try to use a deeper voice if available
+      const voices = speechSynthesis.getVoices();
+      const deepVoice = voices.find(voice => 
+        voice.name.includes('Male') || 
+        voice.name.includes('Deep') ||
+        voice.name.includes('Bass')
       );
-
-      if (!response.ok) {
-        console.error("TTS error:", await response.text());
-        onSpeaking(false);
-        return;
+      if (deepVoice) {
+        utterance.voice = deepVoice;
       }
 
-      const { audioContent } = await response.json();
-      
-      // Create and play audio
-      const audio = new Audio(`data:audio/mp3;base64,${audioContent}`);
-      audioRef.current = audio;
-      
-      audio.onended = () => {
+      utterance.onend = () => {
         onSpeaking(false);
-        audioRef.current = null;
-      };
-      
-      audio.onerror = () => {
-        console.error("Audio playback error");
-        onSpeaking(false);
-        audioRef.current = null;
       };
 
-      await audio.play();
+      utterance.onerror = (error) => {
+        console.error("Speech synthesis error:", error);
+        onSpeaking(false);
+      };
+
+      speechSynthesis.speak(utterance);
     } catch (error) {
       console.error("TTS error:", error);
       onSpeaking(false);

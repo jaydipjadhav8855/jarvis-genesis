@@ -3,9 +3,6 @@ project_id = "ccsweamqyoalxkyuqkfm"
 [functions.chat]
 verify_jwt = false
 
-[functions.text-to-speech]
-verify_jwt = false
-
 [functions.analyze-file]
 verify_jwt = false
 
