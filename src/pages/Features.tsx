@@ -37,7 +37,7 @@ const Features = () => {
             Advanced AI Tools
           </h1>
           <p className="text-muted-foreground">
-            Powered by Lovable AI & Jayvik Labs
+            Powered by Jayvik Labs
           </p>
         </motion.div>
 
