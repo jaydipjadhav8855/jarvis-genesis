@@ -5,8 +5,16 @@ import ChatInterface from "@/components/ChatInterface";
 import VoiceControl from "@/components/VoiceControl";
 import CommandPalette from "@/components/CommandPalette";
 import ParticleBackground from "@/components/ParticleBackground";
+import ImageGenerator from "@/components/ImageGenerator";
+import WebSearchPanel from "@/components/WebSearchPanel";
+import WikipediaSearch from "@/components/WikipediaSearch";
+import CodeAssistant from "@/components/CodeAssistant";
+import FileAnalyzer from "@/components/FileAnalyzer";
+import TaskManager from "@/components/TaskManager";
+import WeatherWidget from "@/components/WeatherWidget";
 import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles, MessageSquare, Image, Search, Code, FileText, CheckSquare, Cloud, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -77,33 +85,107 @@ const Index = () => {
           <Dashboard />
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-          {/* Voice Control */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 1 }}
-            className="flex items-center justify-center"
-          >
-            <VoiceControl
-              onTranscript={(text) => {
-                // Text will be sent through ChatInterface
-                const event = new CustomEvent("voiceTranscript", { detail: text });
-                window.dispatchEvent(event);
-              }}
-              isSpeaking={isSpeaking}
-            />
-          </motion.div>
+        {/* Main Content Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1 }}
+          className="mt-8"
+        >
+          <Tabs defaultValue="chat" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 jarvis-border">
+              <TabsTrigger value="chat" className="gap-1 text-xs lg:text-sm">
+                <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Chat</span>
+              </TabsTrigger>
+              <TabsTrigger value="image" className="gap-1 text-xs lg:text-sm">
+                <Image className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Image</span>
+              </TabsTrigger>
+              <TabsTrigger value="search" className="gap-1 text-xs lg:text-sm">
+                <Search className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Web</span>
+              </TabsTrigger>
+              <TabsTrigger value="wiki" className="gap-1 text-xs lg:text-sm">
+                <BookOpen className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Wiki</span>
+              </TabsTrigger>
+              <TabsTrigger value="weather" className="gap-1 text-xs lg:text-sm">
+                <Cloud className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Weather</span>
+              </TabsTrigger>
+              <TabsTrigger value="code" className="gap-1 text-xs lg:text-sm">
+                <Code className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Code</span>
+              </TabsTrigger>
+              <TabsTrigger value="file" className="gap-1 text-xs lg:text-sm">
+                <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Files</span>
+              </TabsTrigger>
+              <TabsTrigger value="tasks" className="gap-1 text-xs lg:text-sm">
+                <CheckSquare className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Tasks</span>
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Chat Interface */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 1.2 }}
-          >
-            <ChatInterface onSpeaking={setIsSpeaking} />
-          </motion.div>
-        </div>
+            <TabsContent value="chat" className="mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="flex items-center justify-center">
+                  <VoiceControl
+                    onTranscript={(text) => {
+                      const event = new CustomEvent("voiceTranscript", { detail: text });
+                      window.dispatchEvent(event);
+                    }}
+                    isSpeaking={isSpeaking}
+                  />
+                </div>
+                <ChatInterface onSpeaking={setIsSpeaking} />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="image" className="mt-6">
+              <div className="max-w-2xl mx-auto">
+                <ImageGenerator />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="search" className="mt-6">
+              <div className="max-w-2xl mx-auto">
+                <WebSearchPanel />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="wiki" className="mt-6">
+              <div className="max-w-2xl mx-auto">
+                <WikipediaSearch />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="weather" className="mt-6">
+              <div className="max-w-2xl mx-auto">
+                <WeatherWidget />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="code" className="mt-6">
+              <div className="max-w-4xl mx-auto">
+                <CodeAssistant />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="file" className="mt-6">
+              <div className="max-w-4xl mx-auto">
+                <FileAnalyzer />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tasks" className="mt-6">
+              <div className="max-w-2xl mx-auto">
+                <TaskManager />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
 
         {/* About Section */}
         <motion.div
@@ -138,7 +220,8 @@ const Index = () => {
           transition={{ duration: 0.5, delay: 1.6 }}
           className="text-center mt-8 text-sm text-muted-foreground"
         >
-          <p>System Status: Online | AI Model: Gemini 2.5 Flash | Version: 1.0.0</p>
+          <p>System Status: Online | AI Models: Gemini 2.5 + GPT-5 | Version: 2.0.0</p>
+          <p className="mt-2 text-xs">Features: Chat • Voice • Image Gen • Web Search • Weather • Code Gen • File Analysis • Task Manager</p>
         </motion.div>
       </motion.div>
     </div>

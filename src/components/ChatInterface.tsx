@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Send, Trash2, Volume2, VolumeX } from "lucide-react";
+import { Send, Trash2, Volume2, VolumeX, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
@@ -23,6 +24,7 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [model, setModel] = useState<"gemini" | "gpt">("gemini");
   const [user, setUser] = useState<User | null>(null);
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const { toast } = useToast();
@@ -197,8 +199,9 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
     await saveMessage("user", textToSend);
 
     try {
+      const functionName = model === "gpt" ? "gpt-chat" : "chat";
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`,
         {
           method: "POST",
           headers: {
@@ -318,7 +321,26 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
     <Card className="flex flex-col h-[600px] jarvis-border bg-card/50 backdrop-blur-xl jarvis-scan-line">
       <div className="flex items-center justify-between p-4 border-b jarvis-border">
         <h2 className="text-xl font-bold jarvis-text-glow">JARVIS Interface</h2>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center flex-wrap">
+          <Select value={model} onValueChange={(value: "gemini" | "gpt") => setModel(value)}>
+            <SelectTrigger className="w-[140px] jarvis-border h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gemini">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-3 h-3" />
+                  Gemini 2.5
+                </div>
+              </SelectItem>
+              <SelectItem value="gpt">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-3 h-3" />
+                  GPT-5 Mini
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
           <Button
             variant="ghost"
             size="sm"
