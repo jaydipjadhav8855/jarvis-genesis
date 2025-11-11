@@ -8,13 +8,14 @@ import ParticleBackground from "@/components/ParticleBackground";
 import ImageGenerator from "@/components/ImageGenerator";
 import WebSearchPanel from "@/components/WebSearchPanel";
 import WikipediaSearch from "@/components/WikipediaSearch";
+import DeepSearch from "@/components/DeepSearch";
 import CodeAssistant from "@/components/CodeAssistant";
 import FileAnalyzer from "@/components/FileAnalyzer";
 import TaskManager from "@/components/TaskManager";
 import WeatherWidget from "@/components/WeatherWidget";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, MessageSquare, Image, Search, Code, FileText, CheckSquare, Cloud, BookOpen } from "lucide-react";
+import { Sparkles, MessageSquare, Image, Search, Code, FileText, CheckSquare, Cloud, BookOpen, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Index = () => {
@@ -93,10 +94,14 @@ const Index = () => {
           className="mt-8"
         >
           <Tabs defaultValue="chat" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 jarvis-border">
+            <TabsList className="grid w-full grid-cols-5 lg:grid-cols-9 jarvis-border">
               <TabsTrigger value="chat" className="gap-1 text-xs lg:text-sm">
                 <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4" />
                 <span className="hidden sm:inline">Chat</span>
+              </TabsTrigger>
+              <TabsTrigger value="deep-search" className="gap-1 text-xs lg:text-sm">
+                <Zap className="w-3 h-3 lg:w-4 lg:h-4" />
+                <span className="hidden sm:inline">Deep Search</span>
               </TabsTrigger>
               <TabsTrigger value="image" className="gap-1 text-xs lg:text-sm">
                 <Image className="w-3 h-3 lg:w-4 lg:h-4" />
@@ -141,6 +146,10 @@ const Index = () => {
                 </div>
                 <ChatInterface onSpeaking={setIsSpeaking} />
               </div>
+            </TabsContent>
+
+            <TabsContent value="deep-search" className="mt-6">
+              <DeepSearch />
             </TabsContent>
 
             <TabsContent value="image" className="mt-6">
@@ -220,8 +229,8 @@ const Index = () => {
           transition={{ duration: 0.5, delay: 1.6 }}
           className="text-center mt-8 text-sm text-muted-foreground"
         >
-          <p>System Status: Online | AI Models: Gemini 2.5 + GPT-5 | Version: 2.0.0</p>
-          <p className="mt-2 text-xs">Features: Chat • Voice • Image Gen • Web Search • Weather • Code Gen • File Analysis • Task Manager</p>
+          <p>System Status: Online | AI Models: Gemini 2.5 + GPT-5 + Perplexity | Version: 2.0.0</p>
+          <p className="mt-2 text-xs">Features: Chat • Deep Search • Voice • Image Gen • Web Search • Weather • Code Gen • File Analysis • Task Manager</p>
         </motion.div>
       </motion.div>
     </div>

@@ -87,16 +87,8 @@ const ChatInterface = ({ onSpeaking }: ChatInterfaceProps) => {
   }, [user]);
 
   useEffect(() => {
-    // Only scroll if there are messages and user is near bottom
-    if (messages.length > 0) {
-      const container = messagesEndRef.current?.parentElement;
-      if (container) {
-        const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-        if (isNearBottom) {
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        }
-      }
-    }
+    // Auto-scroll to bottom when new messages arrive
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const loadConversations = async () => {
