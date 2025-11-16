@@ -1,12 +1,1 @@
-fastapi
-uvicorn
-python-dotenv
-openai==0.27.4
-requests
-beautifulsoup4
-SQLAlchemy==1.4.27
-pydantic
-passlib[bcrypt]
-python-multipart
-nltk
-numpy
+# Requirements for Jarvis AI Assistant # Voice Recognition SpeechRecognition==3.8.1 PyAudio==0.2.11 # OpenAI API openai==0.27.4 # Database SQLAlchemy==1.4.27 sqlite3==3.36.0 # Web Scraping requests==2.26.0 BeautifulSoup4==4.10.0 # GUI Libraries Tkinter PyQt5==5.15.6 # Other dependencies nltk==3.6.3 numpy==1.21.4 # Note: Make sure to adjust versions as per project requirements.
